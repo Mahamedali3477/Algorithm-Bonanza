@@ -1,0 +1,295 @@
+
+C headers
+- param.h     piece values
+- shogi.h     main header
+
+basic C functions
+- main.c      main function of C program
+- data.c      definition of global variables
+- ini.c       initializations
+- rand.c      pseudo random number generator
+- time.c      time functions
+- bitop.c     bit operation
+- utility.c   misc. functions
+
+I/O
+- proce.c     input procedure 
+- csa.c       csa file format I/O
+- io.c        basic I/O
+- dek.c       dekunobou
+- sckt.c      TCP/IP client of CSA SHOGI protocol
+
+bitboard manipulations
+- attack.c    piece attacks
+- genchk.c    move generation (checks)
+- genevasn.c  move generation (evasions)
+- gendrop.c   move generation (drops)
+- gennocap.c  move generation (non-captures)
+- gencap.c    move generation (captures)
+- movgenex.c  move generation (inferior moves)
+- makemove.c  make moves
+- unmake.c    unmake move
+- mate1ply.c  1-ply mate detection
+- debug.c     examine bitboard validity
+
+brute-force search
+- iterate.c   iterative deepning search at root node
+- searchr.c   alpha-beta search at root node
+- search.c    alpha-beta search
+- next.c      obtains next move
+- quiesrch.c  quiescence search
+- evaluate.c  static eveluation function
+- evaldiff.c  easy and fast evaluation function
+- swap.c      static exchange evaluation
+- hash.c      transposition table
+- thread.c    thread-level parallelization
+- root.c      root move genelation and shallow min-max search
+- mate3.c     3-ply mate detection
+- ponder.c    pondering
+- book.c      creates and probes opening book
+- problem.c   auto problem solver
+- valid.c     examine move validity
+
+optimal control of min-max search
+- learn1.c    main functions
+- learn2.c    feture vector manipuration
+
+misc.
+- bonanza.txt which now you are looking at
+- Makefile    makefile for gnu make.exe
+- Makefile.vs makefile for Microsoft nmake.exe
+- bonanza.ico icon file for windows
+- bonanza.rc  resource-definition file for windows
+- lan.txt     example of input sequence to connect CSA Shogi server
+- book_anti.csa example of a set of bad moves which apear in records
+              of human exparts. This is used by 'book create' command.
+
+4. How to build Bonanza
+-----------------------
+
+You can build Bonanza by means of GNU Make on Linux or Microsoft NMAKE
+on Windows. Here is some examples:
+
+- GCC on Linux
+> make -f Makefile gcc
+
+- Intel C++ Compiler on Linux
+> make -f Makefile icc
+
+- Microsoft C/C++ Compiler on Windows
+> nmake -f Makefile.vs cl
+
+- Intel C++ Compiler on Windows
+> nmake -f Makefile.vs icl
+
+The C source codes are written by using ANSI C plus a small number of
+new features in ISO C99. Therefore, I think this can be easily built
+in many platforms without much effort.
+
+It may be necessary to define some macros in Makefile or
+Makefile.vs. The macros are:
+
+- NDEBUG (DEBUG)    builds release (debug) version of Bonanza
+
+- MINIMUM           disables some auxiliary functions that are not
+                    necessary to play a game, e.g., book composition
+                    and optimization of evaluation functions
+
+- TLP               enables thread-level parallel search
+
+- MPV               enables multi-PV search
+
+- CSA_LAN           enables Bonanza to communicate by CSA Shogi TCP/IP
+                    protcol
+
+- DEKUNOBOU         enables dekunobou interface (available only for
+                    Windows)
+
+- CSASHOGI          builds an engine for CSA Shogi (available only for
+                    Windows)
+
+- NO_LOGGING        suppresses dumping log files
+
+Bonanza is an application that does not provide graphical user
+interface. If you could build "bonanza.exe" properly without CSASHOGI
+macro, it shows a prompt "Black 1>" when you execute it at a computer
+console.
+
+Bonanza uses three binary files: a feature vector of static evaluation
+function "fv.bin",  an opening book "book.bin", and a
+position-learning database "hash.bin". You can find these in "winbin/"
+directory. Without the NO_LOGGING option, Bonanza must find "log/"
+directory to dump log files.
+
+
+5. Command List
+---------------
+
+- analyze
+    Starts to ponder on the current position, until a command is
+    received. After a 'move' or 'undo' command pondering will continue
+    in the new position. To get out of this mode without side effects,
+    you can use the 'exit' command.
+
+- beep on
+- beep off
+    These commands enable (on) or disable (off) a beep when Bonanza
+    makes a move.  The default is on.
+
+- book on
+- book off
+    These commands enable (on) or disable (off) to probe the opening
+    book, "./book.bin".  The default is on.
+
+- book narrow
+- book wide
+    When the command with "narrow" is used, Bonanza selects a book
+    move from a small set of opening moves. The default is "wide". The
+    narrowing of the opening moves is useful if you want Bonanza
+    choose a common opening line.
+
+- book create
+    This command creates the opening book file, "./book.bin", by using
+    numerous experts' games in a single CSA record file, "./book.csa".
+    It also uses another CSA record file, "book_anti.csa", where you
+    can register bad moves that may appear in the experts' games at
+    the last moves in the record file. Here is the example:
+
+    ----------------------------------------
+    PI, +, +6978KI, %TORYO
+    /
+    PI, +, +6978KI, -8384FU, %TORYO
+    /
+    PI, +, +7776FU, -4132KI, %TORYO
+    /
+    PI, +, +7776FU, -4132KI, +2726FU, %TORYO
+    ----------------------------------------
+
+    This command becomes effective when MINIMUM macro is not defined
+    in the Makefile.
+
+- connect 'addr' 'port' 'id' 'passwd' ['ngame']
+    This command connects Bonanza to a shogi server by using the CSA
+    protocol. The first four arguments specify the network address,
+    port number, user ID, and password, respectively. The last
+    argument limits a number of games that will be played by Bonanza.
+    This command becomes effective when CSA_LAN macro is defined in
+    the Makefile.
+
+- dekunobou 'addr' 'port-dekunobou' 'port-bonanza'
+    This command connects Bonanza to Dekunobou.
+
+- display ['num']
+    This command prints the shogi board. If you want to flip the
+    board, set 'num' to 2. If not, set it to 1.
+
+- s
+    Bonanza makes a prompt reply while thinking as soon as this
+    command is used.
+
+- hash 'num'
+    This command is used to initialize the transposition table and
+    set the size of the table to 2^'num'.
+
+- hash learn create
+    This command is used to make a zero-filled position-lerning
+    database, "hash.bin". This command becomes effective when MINIMUM
+    macro is not defined in the Makefile.
+
+- hash learn on
+- hash learn off
+    These commands enable (on) or disable (off) the position learning.
+    The default is on.
+
+- learn 'str' 'steps' ['games' ['iterations' ['num1' ['num2']]]]
+    This command optimizes a feature vector of the static evaluation
+    function by using numorous experts' games in a single CSA record
+    file, "./records.csa". If you want to use a zero-filled vector as
+    an initial guess of the optimization procedure, set 'str' to
+    "ini". If not, set it to "no-ini". The third argument 'games' is a
+    number of games to be read from the record file. If the third
+    argument is negative or omitted, all games are read from the file.
+
+    The learning method iterates a set of procedures, and the number
+    of iteration can be limited by the fourth argument. It continues
+    as long as the argument is negative. The procedures consist of two
+    parts. The first part reads the record file and creates principal
+    variations by using 'num1' threads. The default value of 'num1' is
+    1. The second part renews the feature vector 'steps' times by using
+    'num2' threads in accord with the principal variations. The default
+    value of 'steps' and 'num2' is 1. Note that each thread in the
+    second procedure uses about 500MByte of the main memory. The two
+    arguments 'num1' and 'num2' become effective when TLP macro is
+    defined in the Makefile. After the procedures, the optimized
+    vector is saved in "./fv.bin". This command become effective when
+    MINIMUM macro is not defined in the Makefile.
+
+- limit depth 'num'
+    This command is used to specify a depth, 'num', at which Bonanza
+    ends the iterative deepening search.
+
+- limit nodes 'num'
+    When this command is used, Bonanza stops thinking after searched
+    nodes reach to 'num'.
+
+- limit time 'minute' 'second' ['depth']
+    This command limits thinking time of Bonanza. It tries to make
+    each move by consuming the time 'minute'. When the time is spent
+    all, it makes each move in 'second'. The last argument 'depth' can
+    be used if you want Bonanza to stop thinking after the iterative
+    deepening searches reach sufficient depth.
+
+- limit time extendable
+- limit time strict
+    The command, "limit time extendable", allows Bonanza to think
+    longer than the time limited by the previous command if it wishes
+    to. The default is "strict".
+
+- mnj 'sd' 'seed' 'addr' 'port' 'id'
+    This command connects Bonanza to the council server in
+    src/cluster/. The first two integers specify the standard
+    deviation and initial seed of pseudo-random numbers which are
+    added to the static evaluation function. Experiments suggested
+    that an appropriate value for the standard deviation is 50. Note
+    that all clients should use different seeds. The last three
+    arguments are network address, port number, user ID,
+    respectively. This command becomes effective when MNJ_LAN macro is
+    defined in the Makefile.
+
+- move ['str']
+    Bonanza makes a move of 'str'. If the argument is omitted, Bonanza
+    thinks of its next move by itself.
+
+- mpv num 'nroot'
+- mpv width 'threshold'
+    These commands control the number of root moves, 'nroot', to
+    constitute principal variations. The default number is 1. A root
+    move that yields a smaller value than the best value by 'threshold'
+    is neglected. The default threshold is about 200. These commands
+    become effective when MPV macro is defined in the Makefile.
+
+- new ['str']
+    This command initializes the shogi board. The argument 'str'
+    controls an initial configuration of the board.  If you want to
+    play a no-handicapped game, set 'str' to "PI" and this is the
+    default value. In a handicapped game, specify squares and pieces
+    to drop, e.g. "new PI82HI22KA" or "new PI19KY".
+
+- peek on
+- peek off
+    The command "peek on (off)" enables (disables) peeks at a buffer
+    of the standard input file while Bonanza is thinking. The default
+    is on. This command is useful when you want to process a set of
+    commands as "> ./bonanza.exe < infile".
+
+- ping
+    Prompt Bonanza to print "pong".
+
+- ponder on
+- ponder off
+    The command "ponder on (off)" enables (disables) thinks on the
+    opponent's time. The default is on.
+
+- problem ['num']
+    This command is used to solve problems in "./problem.csa". Here
+    is an example of the problem file.
